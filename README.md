@@ -16,12 +16,10 @@ Go in the created "html" folder and open "index.html".
 
 ### Not so good but easier
 
-I should host this somewhere, don't you think?
+The documentation is also hosted on [a free hosting website](http://www.cosmictrigger.comeze.com).
 
-## Credits
+It probably won't be updated a lot, but it's much easier to use!
 
-UCL/CP3
-
-##License?
+## License?
 
 Do whatever you want with it but don't blame me if something bad happens!
