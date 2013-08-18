@@ -11,7 +11,10 @@ UsbController::UsbController(int verbose){
   this->AM=A32_S_DATA;
   this->DW=D16;
   if (status==0)cout<<"VME USB Init... ok!"<<endl;
-  else cout<<"***FATAL ERROR: "<<status<<" when starting usb board"<<endl;
+  else {
+    cout<<"***FATAL ERROR: "<<status<<" when starting usb board"<<endl;
+    exit(-1); 
+  }
 }
 
 

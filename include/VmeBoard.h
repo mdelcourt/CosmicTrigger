@@ -101,7 +101,17 @@ protected:
   
   void setAdd(int add){this->add=add;}///<Changes the address of the board.
   
-  
+  bool TestError(int erreur,string endroit="",bool fatal=false);
+ /**<
+ * \brief Handles errors.
+ * 
+ * \param erreur Return value of a readData or writeData function. This will be shown in an error message if useful.
+ * \param endroit1 String indicating the place of the error. Will be shown in error message.
+ * \param fatal If set to true, the program exists.
+ * 
+ */
+
+
   int add;
 private:
   AddressModifier AM; ///< Stored AM value

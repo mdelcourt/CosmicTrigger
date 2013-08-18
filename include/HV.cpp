@@ -11,7 +11,7 @@ int hv::reset(void){
   //cout<<show_hex(bridgeAdd)<<endl;
   int DATA=0x0000;
   if(vLevel(NORMAL))cout<<"Reseting HV...";
-  if(TestError(writeData(add+0x06,&DATA))){
+  if(TestError(writeData(add+0x06,&DATA),"HV: reset")){
     if (vLevel(NORMAL))cout<<" ok!"<<endl;
     return(1);
   }
@@ -21,7 +21,7 @@ int hv::reset(void){
 int hv::getStatus(){
     int DATA=0;
     if(vLevel(NORMAL))cout<<"Getting HV status...";
-    if(TestError(readData(add+0x02,&DATA))){
+    if(TestError(readData(add+0x02,&DATA),"HV: getStatus")){
       if (vLevel(NORMAL))cout<<" ok!"<<endl;
       return(DATA);
     }
@@ -32,19 +32,19 @@ int hv::comLoop(int data1, int data2){
     usleep(100000);
     if(getStatus()==0xFFFF&&vLevel(WARNING))cout<<"*  WARNING: Initial status of HV was: error..."<<endl;
     int DATA=0x0001;
-    if(!TestError(writeData(this->add,&DATA)))return(-1);  //Hello  
+    if(!TestError(writeData(this->add,&DATA)),"HV: comLoop, starting communication")return(-1);  //Hello  
     DATA=this->hvAdd;
-    if(!TestError(writeData(this->add,&DATA)))return(-1);  //Alim add
+    if(!TestError(writeData(this->add,&DATA)),"HV: comLoop, setting alim address")return(-1);  //Alim add
 
     DATA=data1;
-    if(!TestError(writeData(this->add,&DATA)))return(-1);  //Command
+    if(!TestError(writeData(this->add,&DATA),"HV: comLoop, setting first command"))return(-1);  //Command
     if (data2>-1){
       DATA=data2;
-      if(!TestError(writeData(this->add,&DATA)))return(-1); //Value 
+      if(!TestError(writeData(this->add,&DATA),"HV: comLoop, setting second command"))return(-1); //Value 
     }
     
     DATA=0x0000;
-    if(!TestError(writeData(this->add+0x04,&DATA)))return(-1); //Send command
+    if(!TestError(writeData(this->add+0x04,&DATA),"HV: comLoop, ordering to send a command"))return(-1); //Send command
     if(getStatus()==0xFFFF){
       if(vLevel(ERROR))cout<<"** ERROR while sending "<<show_hex(data1,4)<<"&"<<show_hex(data2,4)<<endl;
       return(-1);
@@ -91,7 +91,7 @@ int hv::setChV(int volt, int channel){
 int hv::readValues(void){
   if(comLoop(0x00)==-1)return(-1);
   int DATA=0;
-  if(TestError(readData(add,&DATA))==-1)return(-1);
+  if(TestError(readData(add,&DATA),"HV: reading values")==-1)return(-1);
   if(vLevel(NORMAL))cout<<show_hex(DATA)<<endl;
   if(vLevel(DEBUG))cout<<"Data useful:"<<show_hex(getStatus())<<endl;
   if(!(getStatus()==0xFFFF)) return(DATA);

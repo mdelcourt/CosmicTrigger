@@ -32,3 +32,22 @@ void vmeBoard::setAM(AddressModifier AM){
 void vmeBoard::setDW(DataWidth DW){
   this->DW=DW;
 }
+
+
+bool vmeBoard::TestError(int erreur,string endroit, bool fatal){
+  if(!erreur==0){
+    if (fatal&&vLevel(SILENT)){
+      cerr<<"***FATAL ERROR, code"<<erreur;
+      if(!(endroit==""))cerr<<" @ "<<endroit;
+      cerr<<endl;
+    }
+    if (!fatal&&vLevel(ERROR)){
+      cerr<<"** ERROR, code"<<erreur;
+      if(!(endroit==""))cerr<<" @ "<<endroit;
+      cerr<<endl;
+    }
+    if (fatal) exit(-1);
+    return(0);
+  }
+  else return(1);
+}

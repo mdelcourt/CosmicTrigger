@@ -16,6 +16,10 @@ using namespace std;
  * In the case of the High Voltage unit, that address can be set by typing F99# Add # on the unit. 
  * 
  * 
+ *   
+ * Here are the data sheets for the <a href="https://dl.dropboxusercontent.com/u/33459975/cosmicTrigger/datasheets/n470_rev3.pdf">CAENET controller</a> and for the <a href="https://dl.dropboxusercontent.com/u/33459975/cosmicTrigger/datasheets/v288_rev0.pdf">High voltage source</a>.
+
+ * 
  */
 
 

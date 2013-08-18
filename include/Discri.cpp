@@ -23,7 +23,7 @@ int discri::setChannel(int num, bool newState){
   if(!newState && curState)this->status-=pow(2,num);
   else if (newState && !curState) this->status+=pow(2,num);
   int DATA=status;
-  if(TestError(writeData(this->add+0x4A,&DATA),"Changing channel status")){
+  if(TestError(writeData(this->add+0x4A,&DATA),"Discri: Changing channel status")){
     if (vLevel(NORMAL))cout<<"New status for channel "<<num<<": "<<(this->status%(int)pow(2,num+1))/pow(2,num)<<endl;
     return(1);
   }
@@ -34,7 +34,7 @@ int discri::setChannel(int num, bool newState){
 int discri::setMultiChannel(int code){
   this->status=code;
   int DATA=code;
-  if(TestError(writeData(this->add+0x4A,&DATA),"Changing channel status")){
+  if(TestError(writeData(this->add+0x4A,&DATA),"Discri: Changing channel status")){
     if (vLevel(NORMAL))    cout<<"Channels changed. Code:"<<code<<endl;
     return(1);
   }
@@ -47,7 +47,7 @@ int discri::setMajority(int num){
   if ((nRound+0.5)>int(nRound)){ round=(int)nRound+1;}
   else{ round=(int)nRound;}
   
-  if(TestError(writeData(this->add+0x48,&round))){
+  if(TestError(writeData(this->add+0x48,&round),"Discri: setting majority")){
     if(vLevel(NORMAL))cout<<"Set majority level to "<<num<<"(sent: "<<round<<")"<<endl;
     return (1);
   }
@@ -68,7 +68,7 @@ int discri::setTh(int value,int num){
     }
     else{
       if(vLevel(DEBUG)) cout<<"Setting threshold to "<<value<<" on channel "<<num<<"...";
-      if(TestError(writeData(add+2*num,&value))){
+      if(TestError(writeData(add+2*num,&value),"Discri: Setting threshold")){
 	if (vLevel(DEBUG))cout<<" ok!"<<endl;
 	return(1);
       }
@@ -87,8 +87,8 @@ int discri::setWidth(int value,int num){
       int DATA=value;
       if(vLevel(NORMAL)) cout<<"Setting output width to"<<value<<"...";
       bool state;
-      if (num<8)state=TestError(writeData(this->add+0x40,&DATA));
-      if (num<0||num>7)state=TestError(writeData(this->add+0x42,&DATA));
+      if (num<8)state=TestError(writeData(this->add+0x40,&DATA),"Discri: Setting width");
+      if (num<0||num>7)state=TestError(writeData(this->add+0x42,&DATA),"Discri: Setting width");
       if(state && vLevel(NORMAL)){
 	cout<<" ok!"<<endl;
       }
@@ -115,8 +115,8 @@ int discri::setDeadTime(int value,int num){
       int DATA=value;
       if(vLevel(NORMAL))cout<<"Setting dead time to "<<value<<"...";
       bool state;
-      if (num<8)state=TestError(writeData(this->add+0x44,&DATA));
-      if (num<0||num>7)state=TestError(writeData(this->add+0x46,&DATA));
+      if (num<8)state=TestError(writeData(this->add+0x44,&DATA),"Discri: setting dead time");
+      if (num<0||num>7)state=TestError(writeData(this->add+0x46,&DATA),"Discri: setting dead time");
       
       if(state && vLevel(NORMAL))cout<<" ok!"<<endl;
       if(!state)return(-1);

@@ -6,7 +6,7 @@
 
 
 int main(){
-  UsbController myCont(4);
+  UsbController myCont(ERROR);
   discri myDiscri(&myCont);
   ttcVi myTtc(&myCont);
   

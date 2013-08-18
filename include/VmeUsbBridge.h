@@ -8,7 +8,6 @@
 
 #include "VmeController.h"
 
-
 /**
  * \brief Definition of a USB/VME controller.
  * 

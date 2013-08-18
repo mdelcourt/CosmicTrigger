@@ -14,6 +14,8 @@ using namespace std;
  *  You can control a few basic functionalities of the Triger and Time Control unit.
  * 
  *  See different functions for detail.
+ * 
+ * Here are the datasheets for <a href="https://dl.dropboxusercontent.com/u/33459975/cosmicTrigger/datasheets/TTCviSpec.pdf">TTCvi unit</a> and the <a href="https://dl.dropboxusercontent.com/u/33459975/cosmicTrigger/datasheets/ttcvx.pdf">TTCvx unit</a>
  */
 
 class ttcVi:public vmeBoard{
@@ -65,7 +67,6 @@ public:
    * 7 => 100kHz
    * 
    * /!\ It will change the trigger mode to random if it was not yet used.
-   * 
    * 
    */
   

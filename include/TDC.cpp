@@ -9,7 +9,7 @@ tdc::tdc(vmeController* controller,int address):vmeBoard(controller,A32_U_DATA,D
     MicroHandshake=add+0x1030;
     OutputBuffer=add+0x0000;
     EventFIFO=add+0x1038;
-    ControlRegister=add+0x1000;
+    ControlRegister=add+0x10;
 }
 
 
@@ -18,7 +18,7 @@ int tdc::waitRead(void)
     unsigned int DATA=0;
     int i=0;
 	while(1){
-			TestError(readData(this->MicroHandshake,&DATA,A32_U_DATA,D16),"wait_read");
+			TestError(readData(this->MicroHandshake,&DATA,A32_U_DATA,D16),"TDC: wait_read");
 			if(DATA%4==3 || DATA%4==2){
 			break;
 			i++;
@@ -32,7 +32,7 @@ int tdc::waitWrite(void)
     unsigned int DATA=0;
     int i=0;
 	while(1){
-			TestError(readData(this->MicroHandshake,&DATA,A32_U_DATA,D16),"wait_write");
+			TestError(readData(this->MicroHandshake,&DATA,A32_U_DATA,D16),"TDC: wait_write");
 			if(DATA%2==1){
 			break;
 			i++;
@@ -46,7 +46,7 @@ int tdc::waitDataReady(void)
     unsigned int DATA=0;
     int i=0;
 	while(1){
-			TestError(readData(this->StatusRegister,&DATA,A32_U_DATA,D16),"wait_write");
+			TestError(readData(this->StatusRegister,&DATA,A32_U_DATA,D16),"TDC: wait_write");
 			if(DATA%2==1){
 			break;
 			i++;
@@ -56,71 +56,78 @@ int tdc::waitDataReady(void)
 }
 
  
-void tdc::getEvent(vector<unsigned int> &event)
+int tdc::getEvent(event &myEvent)
 {
-    //works only if FIFO enabled
-    unsigned int DATA=0;
+    //works only if FIFO enabled !
+    
     this->waitDataReady(); 
-    cout<<endl<<"data ready!"<<endl;
-    //unsigned int eventNumber=0;
-    unsigned int numberOfWords=0;
-    TestError(readData(this->EventFIFO,&DATA,A32_U_DATA,D32),"read FIFO");
-    //eventNumber=digit(DATA,31,16);
-    numberOfWords=digit(DATA,15,0);
-    cout<<"number of words from FIFO : "<<numberOfWords<<endl;
+    
+    unsigned int DATA=0;
+    TestError(readData(this->EventFIFO,&DATA,A32_U_DATA,D32),"TDC: read FIFO");
+    unsigned int eventNumberFIFO=digit(DATA,31,16);
+    unsigned int numberOfWords=digit(DATA,15,0);
+    
+    vector<unsigned int> dataOutputBuffer;
     for(unsigned int i=numberOfWords; i>0 ;i--)
     {
-	TestError(readData(this->add,&DATA,A32_U_DATA,D32),"read buffer");
-        event.vector::push_back(DATA);
-
+	TestError(readData(this->add,&DATA,A32_U_DATA,D32),"TDC: read buffer");
+        dataOutputBuffer.vector::push_back(DATA);
     }
-    //possible error check by comparing 'eventNumber' with event number in global header of 'event'
+    
+    if (!( eventNumberFIFO==digit(dataOutputBuffer[0],26,5) && digit(dataOutputBuffer[0],31,27)==8)) return -1;
+    
+    myEvent.eventNumber=eventNumberFIFO;
+    
+    hit temporaryHit;
+    for(unsigned int i=0; i<numberOfWords-1 ;i++) // "-1" because last event is TRAILER
+    {
+	if (digit(dataOutputBuffer[i],31,27)==0 )
+	{
+	  temporaryHit.time=digit(dataOutputBuffer[i],18,0);
+	  temporaryHit.channel=digit(dataOutputBuffer[i],25,19);
+	  myEvent.measurements.vector::push_back(temporaryHit);
+	}
+    }
+    
+    time(&myEvent.time);
+    return 0;
+    
 }
 
-void tdc::analyseEvent(vector<unsigned int> &event, string filename)
+void tdc::analyseEvent(event myEvent, string filename)
 {
-    int triggerTime=0;
-    int firstClockTime=0;
-    for(unsigned int i=0; i<event.vector::size();i++)
+    //Getting trigger time
+  
+    unsigned int triggerTime=0;
+    for(unsigned int i=0; i<myEvent.measurements.vector::size();i++)
     {
-        if (digit(event[i],31,27)==0 && digit(event[i],25,19)==this->ClockChannelNumber)
+        if (myEvent.measurements[i].channel==TriggerChannelNumber)
         {
-            firstClockTime=digit(event[i],18,0);
-	    break;
-	}
-    }
-    for(unsigned int i=0; i<event.vector::size();i++)
-    {
-        if (digit(event[i],31,27)==0 && digit(event[i],25,19)==this->TriggerChannelNumber)
-        {
-            triggerTime=digit(event[i],18,0);
+            triggerTime=myEvent.measurements[i].time;
 	    break;
 	}
     }
     
-    //Getting closest clock:
+    //Getting closest clock
     
-    int nextClock=0;
-    for(unsigned int i=0; i<event.vector::size();i++)
+    unsigned int nextClock=0;
+    for(unsigned int i=0; i<myEvent.measurements.vector::size();i++)
     {
-        if (digit(event[i],31,27)==0 && digit(event[i],25,19)==this->ClockChannelNumber)
+        
+	if (myEvent.measurements[i].channel==ClockChannelNumber)
         {
-	    if (digit(event[i],18,0)>triggerTime){nextClock=digit(event[i],18,0);break;}
+            if (myEvent.measurements[i].time>triggerTime){nextClock=myEvent.measurements[i].time;break;}
 	}
     }
     
-    cout<<"Trigger Time: "<<triggerTime<<" Next clock time: "<<firstClockTime<<endl;
+    //cout<<"Trigger Time: "<<triggerTime<<" Next clock time: "<<firstClockTime<<endl;
     
     float phase=nextClock-triggerTime;
-    int eventNumber=digit(event[0],26,5);
     
     //completer ICI !
-    
-    time_t rawtime;
-    struct tm * timeinfo;
-    time(&rawtime);
     stringstream mystream;
-    mystream<<"echo '"<<asctime(localtime(&rawtime))<<" - "<<phase<<"'>> eventsLong.txt"<<endl;
+    
+    mystream<<"echo '"<<asctime(localtime(&myEvent.time))<<" - "<<phase<<"'>> eventsLong.txt"<<endl;
     system(mystream.str().c_str());
     mystream.str("");
     mystream<<"echo '"<<phase<<"'>> eventsShort.txt"<<endl;
@@ -130,64 +137,47 @@ void tdc::analyseEvent(vector<unsigned int> &event, string filename)
     //Getting all clock ticks
     
     unsigned int previousClock=0;
-    for(unsigned int i=0; i<event.vector::size();i++)
+    for(unsigned int i=0; i<myEvent.measurements.vector::size();i++)
     {
-        if (digit(event[i],31,27)==0 && digit(event[i],25,19)==this->ClockChannelNumber)
+        if (myEvent.measurements[i].channel==ClockChannelNumber)
         {
 	  if(previousClock!=0){
 	        mystream.str("");
-		mystream<<"echo '"<<digit(event[i],18,0)-previousClock<<" - Event "<<i<<"'>> clocksLong.txt"<<endl;
+		mystream<<"echo '"<<myEvent.measurements[i].time-previousClock<<" - Event "<<i<<"'>> clocksLong.txt"<<endl;
 		system(mystream.str().c_str());
 	        mystream.str("");
-		mystream<<"echo '"<<digit(event[i],18,0)-previousClock<<"'>> clocksShort.txt"<<endl;
+		mystream<<"echo '"<<myEvent.measurements[i].time-previousClock<<"'>> clocksShort.txt"<<endl;
 		system(mystream.str().c_str());
 	  }
-	  previousClock=digit(event[i],18,0);
+	  previousClock=myEvent.measurements[i].time;
 	  
 	}
     }
-
-    
-    
 }
 
-void tdc::coutEvent(vector<unsigned int> &event)
+void tdc::coutEvent(event myEvent)
 {  
-  for(unsigned int i=0; i<event.vector::size();i++)
-    {
-      switch(digit(event[i],31,27))
-	{
-	  case 0:
-	    //time=digit(event[i],18,0);
-	    cout<<"channel:"<<digit(event[i],25,19)<<"   time:"<<digit(event[i],18,0)<<endl;
-	    break;
-	  case 8:
-	    cout<<"Global Header of event "<<digit(event[i],26,5)<<endl;
-	    break;
-	  case 16:
-	    cout<<"Global Trailer"<<endl;
-	    break;
-	  default :
-	    cout<<"Other"<<endl;
-	    break;
-	}
-	  
-	
-    }
-
+  if(vLevel(NORMAL))cout<<"Event number : "<<myEvent.eventNumber<<endl;
+  if(vLevel(NORMAL))cout<<"Recorded events :"<<endl;
+  for (unsigned int i=0; i<myEvent.measurements.vector::size(); i++)
+  {
+    if(vLevel(NORMAL))cout<<"Channel : "<<myEvent.measurements[i].channel<<" - Time : "<<myEvent.measurements[i].time<<endl;
+  }
+  cout<<endl;
 }
 
 // Read the status with the
 void tdc::ReadStatus(){
-    int DATA=0;
+    unsigned int DATA=0;
     waitRead();
-    TestError(readData(StatusRegister,&DATA));
-    if (DATA%2 > 0) cout << "Event Ready"<<endl;
-    else cout<< "No data ready"<<endl;
-    if (DATA%8 >3)  cout<< " Output Buffer is Full"<< endl;
-    else cout<< " Output Buffer is not full"<<endl;
-    if (DATA%16 >7 ) cout<< " Operating Mode : Trigger "<<endl;
-    else cout<< "Operating Mode : Continuous"<<endl;
+    TestError(readData(StatusRegister,&DATA),"TDC: read Status");
+    if (DATA%2 > 0){ if(vLevel(NORMAL))cout << "Event Ready"<<endl;}
+    else {if(vLevel(NORMAL))cout<< "No data ready"<<endl;}
+    if (DATA%8 >3)  if(vLevel(NORMAL))cout<< " Output Buffer is Full"<< endl;
+    else {if(vLevel(NORMAL))cout<< " Output Buffer is not full"<<endl;}
+    
+    if (DATA%16 >7 ){if(vLevel(NORMAL))cout<< " Operating Mode : Trigger "<<endl;}
+    else{ if(vLevel(NORMAL))cout<< "Operating Mode : Continuous"<<endl;}
 }
 
 void tdc::Reset(){
@@ -197,56 +187,56 @@ void tdc::Reset(){
         ADD+=2;
         TestError(writeData(ADD, &DATA),"Reset...");
     }
-    cout<< " Module Reset... " << endl << " Software Clear... " << endl <<  " Software Event Reset... " <<endl;
+    if(vLevel(NORMAL))cout<< " Module Reset... " << endl << " Software Clear... " << endl <<  " Software Event Reset... " <<endl;
 }
 
 void tdc::setMode(bool Trig){
     unsigned int DATA=0;
     if(Trig) DATA = 0x0000;
     else DATA =0x0100;
-    waitWrite();
-    TestError(writeData(Opcode,&DATA,A32_U_DATA,D16));
-    cout << "Trigger Mode : " << Trig<< endl;
+    writeOpcode(DATA);
+    if(vLevel(DEBUG))cout << "Trigger Mode : " << Trig<< endl;
     }
 
 void tdc::setMaxEvPerHit(int Max_ev_per_hit){
     for(int k=0; k<8;k++)
     if (Max_ev_per_hit== (2^(k)))
     {
-        if (k == 8) cout << "No limit on Maximum number of hits per event";
+        if(vLevel(NORMAL))if (k == 8) cout << "No limit on Maximum number of hits per event";
         unsigned int DATA=0x3300; // MEPH = maximum events per hits
-        waitWrite();
-        TestError(writeData(Opcode, &DATA));
+        writeOpcode(DATA);
         DATA = k+1;
-
-        TestError(writeData(Opcode, &DATA)," Maximum events per hits : set ! ");
+        writeOpcode(DATA);
     }
-    else cout<< "Not a valid set  ! value of Max number of hits per event must be a power of 2 (1 2 4 .. 128) or 256 for NO LIMIT";
+    else if (Max_ev_per_hit==0)
+    {
+	unsigned int DATA=0x3300;
+        writeOpcode(DATA);
+	DATA=0;
+        writeOpcode(DATA);
+    }
+    else if(vLevel(WARNING))cout<< "Not a valid set  ! value of Max number of hits per event must be 0 or a power of 2 (1 2 4 .. 128) or 256 for NO LIMIT";
    }
 
 void tdc::setWindowWidth(unsigned int WidthSetting)
-  {   if (WidthSetting > 4095 ) cout << "Width Setting must be a integer in the range from 1 to 4095" << endl;
+  {   if (WidthSetting > 4095 ){if(vLevel(WARNING))cout << "Width Setting must be a integer in the range from 1 to 4095" << endl;}
       else
       {unsigned int DATA=0x1000;
-        waitWrite();
-      TestError(writeData(this->Opcode,&DATA));
-      waitWrite();
+      writeOpcode(DATA);
       DATA = WidthSetting;
-      TestError(writeData(this->Opcode,&DATA), "Window Width : set !");
+      writeOpcode(DATA);
       cout << "Window Width set to"<< WidthSetting<< endl;
       }
   }
 
 
   void tdc::setWindowOffset(int OffsetSetting)
-  {   if (OffsetSetting > 40 || OffsetSetting < -2048) cout << "Offset Setting must be a integer in the range from -2048 to +40" << endl;
+  {   if (OffsetSetting > 40 || OffsetSetting < -2048){if(vLevel(WARNING))cout << "Offset Setting must be a integer in the range from -2048 to +40" << endl;}
       else
-      {int DATA = 0x1100;
-      waitWrite();
-      TestError(writeData(this->Opcode,&DATA));
-      waitWrite();
+      {unsigned int DATA = 0x1100;
+      writeOpcode(DATA);
       DATA = OffsetSetting;
-      TestError(writeData(this->Opcode,&DATA), "Window Width : set !");
+      writeOpcode(DATA);
       cout << "Window Width set to"<< OffsetSetting<< endl;
       }
   }
@@ -254,53 +244,42 @@ void tdc::setWindowWidth(unsigned int WidthSetting)
 
   void tdc::setExSearchMargin(int ExSearchMrgnSetting )
   {
-      if (ExSearchMrgnSetting > 50) cout << " 50*25ns is the maximal value. Extra Search Margin Setting must be a integer in the range from 0 to 50" << endl;
+      if (ExSearchMrgnSetting > 50){if(vLevel(WARNING)) cout << " 50*25ns is the maximal value. Extra Search Margin Setting must be a integer in the range from 0 to 50" << endl;}
       else
-      {int DATA = 0x1200;
-      waitWrite();
-      TestError(writeData(this->Opcode,&DATA));
-      waitWrite();
+      {unsigned int DATA = 0x1200;
+      writeOpcode(DATA);
       DATA = ExSearchMrgnSetting;
-      TestError(writeData(this->Opcode,&DATA), "Extra Search Margin Width : set !");
-      cout << "Extra Search Margin Width set to"<< ExSearchMrgnSetting<< endl;
+      writeOpcode(DATA);
+      if(vLevel(NORMAL))cout << "Extra Search Margin Width set to"<< ExSearchMrgnSetting<< endl;
   }
   }
 
   void tdc::setRejectMargin(int RejectMrgnSetting)
   {
-      if (RejectMrgnSetting > 4095) cout << "Offset Setting must be a integer in the range from -2048 to +40" << endl;
+      if (RejectMrgnSetting > 4095) {if(vLevel(WARNING))cout << "Offset Setting must be a integer in the range from -2048 to +40" << endl;}
       else
-      {int DATA = 0x1300;
-      waitWrite();
-      TestError(writeData(this->Opcode,&DATA));
-      waitWrite();
+      {unsigned int DATA = 0x1300;
+      writeOpcode(DATA);
       DATA = RejectMrgnSetting;
-      TestError(writeData(this->Opcode,&DATA), "Reject Margin Width : set !");
-      cout << "Reject Margin set to"<< RejectMrgnSetting<< endl;
-  }
+      writeOpcode(DATA);
+      if(vLevel(NORMAL))cout << "Reject Margin set to"<< RejectMrgnSetting<< endl;
+      }
   }
 
-  void tdc::readTriggerConfiguration()
+  void tdc::readWindowConfiguration()
   {
-      int DATA=0x1600;
-      waitWrite();
-      TestError(writeData(this->Opcode,&DATA));
-      waitRead();
-      TestError(readData(this->Opcode,&DATA));
-      cout<<" Match WIndow Width : "<<digit(DATA,11,0);
-      waitRead();
-      TestError(readData(this->Opcode,&DATA));
-      cout<<" WindowOfset : "<<digit(DATA,11,0)-4096;
-      waitRead();
-      TestError(readData(this->Opcode,&DATA));
-      cout<<" ExtraSearchWindow : "<<digit(DATA,11,0);
-      waitRead();
-      TestError(readData(this->Opcode,&DATA));
-      cout<<" Reject Margin : "<<digit(DATA,11,0);
-      waitRead();
-      TestError(readData(this->Opcode,&DATA));
-      cout<<" Trigger Time Substraction : "<<digit(DATA,0);
-      
+      unsigned int DATA=0x1600;
+      writeOpcode(DATA);
+      readOpcode(DATA);
+      if(vLevel(NORMAL))cout<<" Match window width : "<<digit(DATA,11,0);
+      readOpcode(DATA);
+      if(vLevel(NORMAL))cout<<" Window ofset : "<<digit(DATA,11,0)-4096;
+      readOpcode(DATA);
+      if(vLevel(NORMAL))cout<<" Extra search window width: "<<digit(DATA,11,0);
+      readOpcode(DATA);
+      if(vLevel(NORMAL))cout<<" Reject margin width: "<<digit(DATA,11,0);
+      readOpcode(DATA);
+      if(vLevel(NORMAL))cout<<" Trigger time substraction : "<<digit(DATA,0);
   }
       
       
@@ -313,34 +292,40 @@ void tdc::setWindowWidth(unsigned int WidthSetting)
   void tdc::enableFIFO()
   {
     unsigned int DATA;  
-    TestError(readData(ControlRegister, &DATA));
+    TestError(readData(ControlRegister, &DATA),"TDC: Enabling the FIFO");
     if (digit(DATA,8)==0) {
       DATA+=0x0100;}
-    TestError(writeData(ControlRegister, &DATA));
-    cout<<"FIFO enabled !"<<endl;
+    TestError(writeData(ControlRegister, &DATA),"TDC: Enabling the FIFO");
+    if(vLevel(NORMAL))cout<<"FIFO enabled !"<<endl;
   }
   
   void tdc::disableTDCHeaderAndTrailer()
   {
-    int DATA = 0x3100;
-      waitWrite();
-      TestError(writeData(this->Opcode,&DATA));
-      waitWrite();
+    unsigned int DATA = 0x3100;
+      writeOpcode(DATA);
       DATA = 0x3200;
-      TestError(writeData(this->Opcode,&DATA));
-      waitRead();
-      TestError(readData(this->Opcode,&DATA));
+      writeOpcode(DATA);
+      readOpcode(DATA);
       if (DATA%2==0)
-      cout << "TDC Header and Trailer disabled"<< endl;
+      if(vLevel(NORMAL))cout << "TDC Header and Trailer disabled"<< endl;
   }
   
   void tdc::readResolution()
   {
-      int DATA=0x2600;
-      waitWrite();
-      TestError(writeData(this->Opcode,&DATA));
-      waitRead();
-      TestError(readData(this->Opcode,&DATA));
-      cout<<" resolution : "<<digit(DATA,1,0)<<endl;;
+      unsigned int DATA=0x2600;
+      writeOpcode(DATA);
+      readOpcode(DATA);
+      if(vLevel(NORMAL))cout<<" resolution : "<<digit(DATA,1,0)<<endl;;
   }
-      
+  
+void tdc::writeOpcode(unsigned int &DATA)
+{
+  waitWrite();
+  TestError(writeData(Opcode,&DATA),"TDC: writing OPCODE");
+}
+
+void tdc::readOpcode(unsigned int &DATA)
+{
+  waitRead();
+  TestError(readData(Opcode,&DATA),"TDC: reading OPCODE");
+}

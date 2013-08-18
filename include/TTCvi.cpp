@@ -53,7 +53,7 @@ void ttcVi::changeChannel(int channel){
     }
   if (DATA>-1){
     DATA+=this->channelFrequency*16*16*16;
-    if(TestError(writeData(this->add+0x80,&DATA),"Writing new mode")&&vLevel(NORMAL))cout<<" ok!"<<endl;
+    if(TestError(writeData(this->add+0x80,&DATA),"TTCvi: Writing new mode")&&vLevel(NORMAL))cout<<" ok!"<<endl;
     if(vLevel(DEBUG))cout<<"Sent: "<<show_hex(DATA,4)<<" to TTCvi (add:"<<show_hex(this->add,6)<<")"<<endl;
   }
 }
@@ -70,7 +70,7 @@ void ttcVi::changeRandomFrequency(int frequencyId){
 
 int ttcVi::viewMode(void){  
   int DATA=0;
-  if(TestError(readData(this->add+0x80,&DATA))){
+  if(TestError(readData(this->add+0x80,&DATA),"TTCvi: viewMode")){
   switch(DATA%16){
     case 0:
       if (vLevel(NORMAL))cout<<"L1A(0)"<<endl;
