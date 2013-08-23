@@ -35,6 +35,7 @@ void vmeBoard::setDW(DataWidth DW){
 
 
 bool vmeBoard::TestError(int erreur,string endroit, bool fatal){
+  int out=1;
   if(!erreur==0){
     if (fatal&&vLevel(SILENT)){
       cerr<<"***FATAL ERROR, code"<<erreur;
@@ -47,7 +48,10 @@ bool vmeBoard::TestError(int erreur,string endroit, bool fatal){
       cerr<<endl;
     }
     if (fatal) exit(-1);
-    return(0);
+   out=0;
   }
-  else return(1);
+  else{
+    out=1;
+  }
+  return(out);
 }
