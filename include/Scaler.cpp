@@ -11,7 +11,7 @@ int scaler::getCount(int channel){
   int DATA=0;
   int completeAdd=add+0x80+4*(channel-1);
   if(TestError(readData(completeAdd,&DATA,A24_U_DATA,D32),"Scaler: getting count")){
-    if(vLevel(DEBUG))cout<<"Count="<<DATA<<" at add:"<<show_hex(completeAdd)<<endl;
+    if(vLevel(DEBUG))cout<<"Count="<<DATA<<"("<<show_hex(DATA)<<") at add:"<<show_hex(completeAdd)<<endl;
     return(DATA);
   }
   return(-1);
@@ -33,13 +33,13 @@ int scaler::getInfo(){
 int scaler::reset(){
   int DATA=0;
   if(vLevel(NORMAL))cout<<"Reseting scaler...";
-  if(TestError(writeData(add,&DATA)),"Scaler: resetting"){
+  if(TestError(writeData(add,&DATA),"Scaler: resetting")){
     if(vLevel(NORMAL)){
     cout<<" ok!"<<endl;
     }
     return(1);
   }
-  return(0);
+  return(-1);
 }
 
 

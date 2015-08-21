@@ -81,7 +81,7 @@ public:
    * 
    */
 
-  int readValues(void);
+  double ** readValues(double ** data=0);
   /**
    * \brief Reads bridge i/o register
    * 

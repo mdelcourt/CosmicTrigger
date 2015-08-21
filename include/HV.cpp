@@ -88,14 +88,38 @@ int hv::setChV(int volt, int channel){
   }
 }
 
-int hv::readValues(void){
-  if(comLoop(0x00)==-1)return(-1);
+double ** hv::readValues(double ** val){
+  if(val==0){
+    cout<<"New value vector"<<endl;
+    val=new double * [4]; 
+    for(int i=0; i<4; i++) val[i]=new double[4];
+  }
+  
+  if(comLoop(0x01)==-1)return(0);
+//   return(1);
   int DATA=0;
-  if(TestError(readData(add,&DATA),"HV: reading values")==-1)return(-1);
-  if(vLevel(NORMAL))cout<<show_hex(DATA)<<endl;
-  if(vLevel(DEBUG))cout<<"Data useful:"<<show_hex(getStatus())<<endl;
-  if(!(getStatus()==0xFFFF)) return(DATA);
-  else return(-1);
+  //int lBreak=0;
+  usleep(100000);
+  getStatus();
+  readData(add,&DATA);
+  if(DATA){cout<<"No data..."<<endl; return(0);}
+  
+  for(int i=0; i<4; i++){
+    for(int j=0; j<4; j++){
+      readData(add,&DATA);
+      //cout<<DATA<<endl;
+      val[i][j]=DATA;
+      }
+  }
+  if(DATA==0xFFFF){this->reset();}
+
+//   if(TestError(readData(add,&DATA),"HV: reading values")==-1){return(-1);}
+  
+//   if(vLevel(NORMAL)){cout<<show_hex(DATA)<<endl;}
+//   if(vLevel(DEBUG)){cout<<"Data useful:"<<show_hex(getStatus())<<endl;}
+//   if(!(getStatus()==0xFFFF)){return(DATA);}
+//   else return(-1);
+return(val);
 }
 
 
