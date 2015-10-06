@@ -11,7 +11,6 @@ int main(){
   ttcVi myTtc(&myCont);
   
   myTtc.changeChannel(1);
-//   myTtc.changeRandomFrequency();
     
   myDiscri.setMultiChannel(0x000F);
   myDiscri.setMajority(4);
