@@ -6,6 +6,8 @@
  *
  * This library was created in order to provide a flexible remote control system to a  <a href="https://dl.dropboxusercontent.com/u/33459975/cosmicTrigger/DocHardware.pdf">cosmic muon trigger system</a>  .
  * 
+ * This tree includes the modifications of 2015 to calibrate and operate the setup.
+ * 
  * The library has the following structure:
  *
  * \image html Lib.png
@@ -24,30 +26,23 @@
  * 
  * \section dwl Download
  * 
- * The best way to download it is from <a href="https://github.com/md987/CosmicTrigger">github</a> where it will be updated.
- * 
- * You can also download it from <a href="https://dl.dropboxusercontent.com/u/33459975/cosmicTrigger/completeArchive.tar.gz">dropbox</a> or from a <a href="http://www.cosmictrigger.comeze.com/completeArchive.tar.gz">free hosting service</a>.
+ * <a href="https://github.com/md987/CosmicTrigger/tree/calibration">Github</a> 
  * 
  * 
  * \section install_sec Installation
  *
  * For the moment, the only bridge implemented is from CAEN. To use it, you should first install CAENVME's driver.
  * 
- * When the library was first created, the driver used were  <a href="https://dl.dropboxusercontent.com/u/33459975/cosmicTrigger/datasheets/CAENUSBdrvB-1.2.tgz">CAENUSBdrvB-1.2</a>   (necessary) and  <a href="https://dl.dropboxusercontent.com/u/33459975/cosmicTrigger/datasheets/CAENVMELib-2.30.2.tgz">CAENVMELib-2.30.2</a>   (probably optional). These drivers worked on a 64bits distribution of linux. More drivers can be found on  <a href="http://www.caen.it/csite/CaenProd.jsp?idmod=417&parent=11">Caen's website</a>  
- * 
- * After installing those drivers, the library should be ready to use (yay!). A makefile is provided to compile a program named "main.cpp".
+ * When the library was first created, the driver used were  <a href="https://dl.dropboxusercontent.com/u/33459975/cosmicTrigger/datasheets/CAENUSBdrvB-1.2.tgz">CAENUSBdrvB-1.2</a>  and  <a href="https://dl.dropboxusercontent.com/u/33459975/cosmicTrigger/datasheets/CAENVMELib-2.30.2.tgz">CAENVMELib-2.30.2</a>. These drivers worked on a 64bits distribution of linux. More drivers can be found on  <a href="http://www.caen.it/csite/CaenProd.jsp?idmod=417&parent=11">Caen's website</a>   * 
+ * After installing those drivers, the library should be ready to use (yay!). A makefile is provided to compile a program named "main.cpp". The script "compile.py" will compile everything in the "script" folder and the output will be generated in the "out" folder.
  * 
  * \section concl_sec Example
  * 
- * A few examples are provided in the folder /examples. 
- * 
- * One of them, \ref normalOp.cpp explains how the system can be used for a regular cosmic trigger system and is probably the best way to see concretely how the library work.
- * 
- * More examples can be found in the appropriate section.
+ * A few examples are provided in the folder in /scripts. More examples can be found on the master branch.
  * 
  * \section contact Contact
  * 
- * For any further information, please feel free to contact me on <a href="https://github.com/md987/CosmicTrigger">github</a> or using my ucl student email if you know it.
+ * For any further information, please feel free to contact me on <a href="https://github.com/md987/CosmicTrigger">github</a> or using by email.
  * 
  */
  /**

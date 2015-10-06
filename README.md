@@ -6,22 +6,18 @@ A quick overview of the hardware [can be found here](https://dl.dropboxuserconte
 
 ## Where can I find documentation?
 
-### Good way
+### Always up to date
 
 Download the whole archive and unzip it.
 
-Install doxygen (if using a debian based system, it's in the official depots, yay!).
+Install doxygen.
 
 run "$doxygen Doxyfile" in the downloaded folder.
 
 Go in the created "html" folder and open "index.html".
 
-### Not so good but easier
+### Easier but could be outdated
 
 The documentation is also hosted at [CERN](http://delcourt.web.cern.ch/delcourt/CosmicTrigger/doc/).
 
 It probably won't be updated a lot, but it's much easier to use!
-
-## License?
-
-Do whatever you want with it but don't blame me if something bad happens!
