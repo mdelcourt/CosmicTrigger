@@ -44,11 +44,18 @@ int hv::comLoop(int data1, int data2){
     }
     
     DATA=0x0000;
-    if(!TestError(writeData(this->add+0x04,&DATA),"HV: comLoop, ordering to send a command")); //Send command
+    if(!TestError(writeData(this->add+0x04,&DATA),"HV: comLoop, ordering to send a command")){cout<<"Error?"<<endl;} //Send command
     if(getStatus()==0xFFFF){
       if(vLevel(ERROR))cout<<"** ERROR while sending "<<show_hex(data1,4)<<"&"<<show_hex(data2,4)<<endl;
       return(-1);
     }
+//     int lbreak=0;
+//     
+//     while(getStatus()!=0xFFFF && lbreak<100){
+//       lbreak++;
+//       DATA=0;
+//       if(TestError(readData(this->add+0x00,&DATA),"HV: comLoop, reading")){cout<<"Word "<<lbreak<<" "<<show_hex(DATA)<<endl;}    
+//     }
     return(1);
     //DATA=getStatus();
     //if(DATA==0xFFFF){cerr<<"ERROR!!!"<<endl;}

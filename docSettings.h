@@ -1,6 +1,6 @@
 //This file contains some instructions to doxygen. Please do not delete.
 
-/*! \mainpage VME trigger documentation 
+/*! \mainpage VME trigger documentation - calibration branch
  *
  * \section intro_sec Introduction
  *

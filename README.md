@@ -18,7 +18,7 @@ Go in the created "html" folder and open "index.html".
 
 ### Not so good but easier
 
-The documentation is also hosted on [a free hosting website](http://www.cosmictrigger.comeze.com).
+The documentation is also hosted at [CERN](http://delcourt.web.cern.ch/delcourt/CosmicTrigger/doc/).
 
 It probably won't be updated a lot, but it's much easier to use!
 
