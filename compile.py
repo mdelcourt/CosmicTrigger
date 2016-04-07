@@ -1,10 +1,6 @@
 import os
 import sys
 
-if not "out" in os.listdir("."):
-  print "No 'out' folder, creating it..."
-  os.system("mkdir out")
-
 if len(sys.argv)==2:
   print "Will only compile %s"%sys.argv[1]
   f=sys.argv[1]
