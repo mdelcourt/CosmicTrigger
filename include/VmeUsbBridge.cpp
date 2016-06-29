@@ -25,6 +25,10 @@ void UsbController::setMode(AddressModifier AM, DataWidth DW){
   this->DW=DW;
 }
 
+int UsbController::reset(){
+  return(CAENVME_SystemReset(*this->BHandle));
+  }
+
 int UsbController::writeData(long unsigned int address,void* data){
   return(CAENVME_WriteCycle(*this->BHandle,address,data,(CVAddressModifier)(int)this->AM,(CVDataWidth)(int)this->DW));
 }

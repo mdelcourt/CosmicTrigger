@@ -34,7 +34,7 @@ public:
      int readData(long unsigned int address,void* data);
      int writeData(long unsigned int address,void* data,AddressModifier AM, DataWidth DW);
      int readData(long unsigned int address,void* data,AddressModifier AM, DataWidth DW);
-
+     int reset();
 
      AddressModifier getAM(void);
      DataWidth getDW(void);

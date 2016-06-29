@@ -154,6 +154,20 @@ public:
    * This information is neglected by 'getEvent()'.
    */
  
+  void writeDeadTime(int deadTime);
+  /**
+   * \brief Sets the dead time in all channels
+   */
+  
+  void readDeadTime();
+  /**
+   * \brief Reads the dead time in all channels
+   */
+
+  void setDetectConf(int mode);
+  
+  void getDetectConf();
+  
   void writeOpcode(unsigned int &data);
   /**
    * \brief writes a command line of 16 bit in the Micro Controller register.
@@ -166,6 +180,8 @@ public:
    * 
    * This command includes a wait time for micro controllers 'read ready' bit.
    */
+  
+  
 
 private:
 

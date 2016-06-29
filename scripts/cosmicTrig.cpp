@@ -20,12 +20,13 @@ int main(){
   discri * d = new discri(&myCont);
   d->setMultiChannel(0b111);
   d->setTh(5);
-  d->setWidth(126);
+  //d->setWidth(126);
+  d->setWidth(200);
   d->setMajority(3);
 
   //Set correct TTC channel
   ttcVi *myTTC = new ttcVi(&myCont);
-  myTTC->changeChannel(1);//1=VME 2=NIM
+  myTTC->changeChannel(2);//1=VME 2=NIM
 
 
 
