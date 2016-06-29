@@ -7,6 +7,24 @@ ttcVi::ttcVi(vmeController* controller,int address):vmeBoard(controller,A32_U_DA
   if(vLevel(NORMAL))cout<<"New TTCvi... ok!"<<endl;
 }
 
+void ttcVi::sendTrig(){
+    int DATA(0);
+    if(TestError(writeData(this->add+0x86,&DATA),"TTCvi: sending trigger") && vLevel(DEBUG)) cout<<"Sent VME trigger"<<endl;
+}
+
+void ttcVi::resetCounter(){
+    int DATA(0);
+    if(TestError(writeData(this->add+0x8C,&DATA),"TTCvi: reset counter") && vLevel(DEBUG)) cout<<"ResetCounter"<<endl;
+}
+long int ttcVi::getEventNumber(){
+    int DATA0(0),DATA1(0);
+    if(TestError(readData(this->add+0x88,&DATA0),"TTCvi: sending trigger") 
+        && TestError(readData(this->add+0x8A,&DATA1),"TTCvi: sending trigger") 
+        && vLevel(DEBUG))        cout<<"Read event Number"<<endl;
+
+    return(0x10000*(DATA0%256)+DATA1);
+}
+
 void ttcVi::changeChannel(int channel){
   this->channel=channel;
   int DATA=-1;

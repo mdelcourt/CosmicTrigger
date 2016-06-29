@@ -28,6 +28,24 @@ public:
    * 
    * \param address The address of the module. Is set with 4 switches on the board. See datasheets for details.
   */
+
+  void sendTrig();
+  /**<
+   * \brief Sends a VME trigger
+   *
+   * Sends a VME trigger to the TTCvi. Trigger will be propagated if the trigger mode is "VME"
+   *
+   */
+  long int getEventNumber();
+  /**<
+   * \brief Return TTCvi event/orbit counter
+   */
+
+  void resetCounter();
+  /**<
+   * \brief Resets the internal event counter
+   */
+
   void changeChannel(int channel);
   /**<
    * \brief Allows you to change the trigger channel.
