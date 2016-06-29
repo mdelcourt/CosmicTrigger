@@ -1,17 +1,22 @@
 #include "CommonDef.h"
 
-
-
-bool TestError(int erreur,string endroit, bool fatal){
-  if(!erreur==0){
-    if (fatal) cerr<<"***FATAL ";
-    cerr<<"ERROR, code "<<erreur;
-    if(!(endroit=="")) cerr<<" @ "<<endroit<<endl;
-    else cerr<<endl;
-    if (fatal) exit(-1);
-    return(0);
+bool TestError(int error, std::string where, bool fatal) {
+  if (error) {
+    if (fatal)
+        std::cerr << "***FATAL ";
+    std::cerr << "ERROR, code " << error;
+    
+    if (where != "")
+        std::cerr << " @ "<< where << std::endl;
+    else std::cerr << std::endl;
+    
+    if (fatal)
+        exit(-1);
+    
+    return 0;
   }
-  else return(1);
+  
+  else return 1;
 }
 
 string show_hex(int number, int size){

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-bool TestError(int erreur,string endroit="",bool fatal=false);
+bool TestError(int error, std::string where="", bool fatal = false);
 /**<
  * \brief Handles errors.
  * 

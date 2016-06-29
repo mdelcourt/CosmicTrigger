@@ -9,7 +9,7 @@ tdc::tdc(vmeController* controller,int address):vmeBoard(controller,A32_U_DATA,D
     MicroHandshake=add+0x1030;
     OutputBuffer=add+0x0000;
     EventFIFO=add+0x1038;
-    ControlRegister=add+0x1000;
+    ControlRegister=add+0x10;
 }
 
 
@@ -66,15 +66,18 @@ int tdc::getEvent(event &myEvent)
     TestError(readData(this->EventFIFO,&DATA,A32_U_DATA,D32),"TDC: read FIFO");
     unsigned int eventNumberFIFO=digit(DATA,31,16);
     unsigned int numberOfWords=digit(DATA,15,0);
+    
     vector<unsigned int> dataOutputBuffer;
-    if(numberOfWords==0 && ERROR)cout<<"***ERROR @ TDC GET EVENT: no words in event."<<endl;
     for(unsigned int i=numberOfWords; i>0 ;i--)
     {
 	TestError(readData(this->add,&DATA,A32_U_DATA,D32),"TDC: read buffer");
         dataOutputBuffer.vector::push_back(DATA);
     }
+    
     if (!( eventNumberFIFO==digit(dataOutputBuffer[0],26,5) && digit(dataOutputBuffer[0],31,27)==8)) return -1;
+    
     myEvent.eventNumber=eventNumberFIFO;
+    
     hit temporaryHit;
     for(unsigned int i=0; i<numberOfWords-1 ;i++) // "-1" because last event is TRAILER
     {
@@ -85,6 +88,7 @@ int tdc::getEvent(event &myEvent)
 	  myEvent.measurements.vector::push_back(temporaryHit);
 	}
     }
+    
     time(&myEvent.time);
     return 0;
     
@@ -95,13 +99,11 @@ void tdc::analyseEvent(event myEvent, string filename)
     //Getting trigger time
   
     unsigned int triggerTime=0;
-    bool foundTrigger=false;
     for(unsigned int i=0; i<myEvent.measurements.vector::size();i++)
     {
         if (myEvent.measurements[i].channel==TriggerChannelNumber)
         {
             triggerTime=myEvent.measurements[i].time;
-	    foundTrigger=true;
 	    break;
 	}
     }
@@ -121,8 +123,6 @@ void tdc::analyseEvent(event myEvent, string filename)
     //cout<<"Trigger Time: "<<triggerTime<<" Next clock time: "<<firstClockTime<<endl;
     
     float phase=nextClock-triggerTime;
-    if(!foundTrigger)phase=-1;
-    
     
     //completer ICI !
     stringstream mystream;
@@ -178,7 +178,6 @@ void tdc::ReadStatus(){
     
     if (DATA%16 >7 ){if(vLevel(NORMAL))cout<< " Operating Mode : Trigger "<<endl;}
     else{ if(vLevel(NORMAL))cout<< "Operating Mode : Continuous"<<endl;}
-    cout<<DATA<<endl;
 }
 
 void tdc::Reset(){
@@ -316,57 +315,8 @@ void tdc::setWindowWidth(unsigned int WidthSetting)
       unsigned int DATA=0x2600;
       writeOpcode(DATA);
       readOpcode(DATA);
-      
-      if(vLevel(NORMAL)){
-	int r=digit(DATA,1,0);
-	cout<<" resolution : "<<r<<" (= "<<800*(r==0)+200*(r==1)+100*(r==2)+25*(r==3)<<"ps)"<<endl;
-      }
+      if(vLevel(NORMAL))cout<<" resolution : "<<digit(DATA,1,0)<<endl;;
   }
-    
-  void tdc::writeDeadTime(int deadTime){
-   if(deadTime>3 && deadTime<0){
-     if(vLevel(WARNING)){cout<<"Bad dead time (0=5ns, 1=10ns, 2=30ns and 3=100ns"<<endl<<"Dead time set to 5ns"<<endl;}
-     deadTime=0;
-    }
-    unsigned int DATA = 0x2800;
-    writeOpcode(DATA);
-    DATA = (unsigned int) deadTime;
-    writeOpcode(DATA);
-  }
-  
-  void tdc::readDeadTime(){
-    unsigned int DATA = 0x2900;
-    writeOpcode(DATA);
-    readOpcode(DATA);
-    if(vLevel(NORMAL)){
-      int d=digit(DATA,1,0);
-      cout<<" Dead time : "<<d<< "(="<<5*(d==0)+10*(d==1)+30*(d==2)+100*(d==3)<<"ns)"<<endl;
-    }
-  }
-  
-  
-  void tdc::setDetectConf(int mode){
-   if(mode>3 || mode<0){
-     if(vLevel(WARNING)){cout<<"Bad mode (0=pair, 1=trailing, 2=leading and 3=t&l)"<<endl<<"Mode set to pair"<<endl;}
-     mode=0;
-    }
-    unsigned int DATA = 0x2200;
-    writeOpcode(DATA);
-    DATA = (unsigned int) mode;
-    writeOpcode(DATA);
-  }
-  
-  void tdc::getDetectConf(){
-    unsigned int DATA = 0x2300;
-    writeOpcode(DATA);
-    readOpcode(DATA);
-    if(vLevel(NORMAL)){
-      int d=digit(DATA,1,0);
-      cout<<" Dead time : "<<d<< "((0=pair, 1=trailing, 2=leading and 3=t&l)"<<endl;
-    }
-  }
-  
-  
   
 void tdc::writeOpcode(unsigned int &DATA)
 {
@@ -379,4 +329,3 @@ void tdc::readOpcode(unsigned int &DATA)
   waitRead();
   TestError(readData(Opcode,&DATA),"TDC: reading OPCODE");
 }
-

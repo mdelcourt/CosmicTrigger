@@ -28,26 +28,43 @@ int hv::getStatus(){
     else return(-1);
 }
 
-int hv::comLoop(int data1, int data2){
+int hv::comLoop(int data1, int data2) {
+    // FIXME
     usleep(100000);
-    if(getStatus()==0xFFFF&&vLevel(WARNING))cout<<"*  WARNING: Initial status of HV was: error..."<<endl;
-    int DATA=0x0001;
-    if(!TestError(writeData(this->add,&DATA),"HV: comLoop, starting communication")){return(-1);}  //Hello  
-    DATA=this->hvAdd;
-    if(!TestError(writeData(this->add,&DATA),"HV: comLoop, setting alim address")){return(-1);}   //Alim add
+    
+    if (getStatus() == 0xFFFF && vLevel(WARNING))
+        std::cout << "*  WARNING: Initial status of HV was: error..." << std::endl;
+    
+    int DATA = 0x0001;
+    
+    if (!TestError(writeData(add, &DATA), "HV: comLoop, starting communication"))
+        return -1;  //Hello
+    
+    DATA = hvAdd;
+    
+    if(!TestError(writeData(add, &DATA), "HV: comLoop, setting alim address"))
+        return -1;   //Alim address
 
-    DATA=data1;
-    if(!TestError(writeData(this->add,&DATA),"HV: comLoop, setting first command")){return(-1);}   //Command
-    if (data2>-1){
-      DATA=data2;
-      if(!TestError(writeData(this->add,&DATA),"HV: comLoop, setting second command")){return(-1);}  //Value 
+    DATA = data1;
+    
+    if(!TestError(writeData(add, &DATA), "HV: comLoop, setting first command"))
+        return -1;   //Command
+    
+    if (data2 > -1){
+        DATA = data2;
+        if(!TestError(writeData(add, &DATA), "HV: comLoop, setting second command"))
+            return -1;  //Value 
     }
     
-    DATA=0x0000;
-    if(!TestError(writeData(this->add+0x04,&DATA),"HV: comLoop, ordering to send a command")){cout<<"Error?"<<endl;} //Send command
-    if(getStatus()==0xFFFF){
-      if(vLevel(ERROR))cout<<"** ERROR while sending "<<show_hex(data1,4)<<"&"<<show_hex(data2,4)<<endl;
-      return(-1);
+    DATA = 0x0000;
+    
+    if (!TestError(writeData(add + 0x04, &DATA), "HV: comLoop, ordering to send a command"))
+        std::cout << "Error?" << std::endl; //Send command
+
+    if (getStatus() == 0xFFFF) {
+        if (vLevel(ERROR))
+            std::cout << "** ERROR while sending " << show_hex(data1, 4) << "&" << show_hex(data2,4) << std::endl;
+        return -1;
     }
 //     int lbreak=0;
 //     
@@ -56,27 +73,35 @@ int hv::comLoop(int data1, int data2){
 //       DATA=0;
 //       if(TestError(readData(this->add+0x00,&DATA),"HV: comLoop, reading")){cout<<"Word "<<lbreak<<" "<<show_hex(DATA)<<endl;}    
 //     }
-    return(1);
+    return 1;
     //DATA=getStatus();
     //if(DATA==0xFFFF){cerr<<"ERROR!!!"<<endl;}
   
 }
-int hv::setChState(bool state, int channel){
-  if (channel<0){
-    int status=1;
-    for (int i=0; i<4; i++){
-      if(setChState(state,i)<0)status=-1;
+
+int hv::setChState(bool state, int channel) {
+    if (channel < 0) {
+        
+        int status = 1;
+    
+        for (int i = 0; i < 4; i++) {
+            if(setChState(state, i) < 0)
+                status = -1;
+        }
+    
+        return status;
+  
+    } else if (channel > 3) {
+    
+        if (vLevel(WARNING))
+            std::cerr << "*   WARNING: invalid parameter: " << channel << ". Statement ignored" << std::endl;
+        return -1;
+    
+    } else {
+        return comLoop(channel * 256 + 0x000B - state);
     }
-    return(status);
-  }
-  else if(channel>3){
-    if(vLevel(WARNING)) cerr<<"*   WARNING: invalid parameter: "<<channel<<". Statement ignored"<<endl;
-    return(-1);
-  }
-  else{
-    return(comLoop(channel*256+0x000B-state));
-  }
 }
+
 int hv::setChV(int volt, int channel){
   if (channel<0){
     int status=1;
@@ -97,7 +122,7 @@ int hv::setChV(int volt, int channel){
 
 double ** hv::readValues(double ** val){
   if(val==0){
-    cout<<"New value vector"<<endl;
+    //cout<<"New value vector"<<endl;
     val=new double * [4]; 
     for(int i=0; i<4; i++) val[i]=new double[4];
   }
