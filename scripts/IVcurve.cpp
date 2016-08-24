@@ -13,7 +13,7 @@
 
 int nChannel = 17; //Number of channels on Scaler
 float tSleepInit = 5; // Time in sec the program will pause after HV being set
-float tStep = 10; //Time between 2 read/reset of scaler
+float tStep = 5; //Time between 2 read/reset of scaler
 float hvCheckStep = 2; //Time between 2 HV check
 
 float sleepError = 1; //Time system pauses if error occurs
@@ -116,8 +116,8 @@ int main(){
   scaler *myScaler = new scaler(&myCont,0xCCCC00);
    
 
-  int channel = 1;
-  for(int V=110; V>10; V-=2){
+  int channel = 0;
+  for(int V=250; V<350; V+=25){
     float time = 15;
     int * hits = getCount(myHv,myScaler,&time,V,channel);
   

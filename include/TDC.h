@@ -42,16 +42,6 @@ public:
    * 
    * It has only been tested in trigger mode.
    */
-  void analyseEvent(event myEvent, string filename);
-  /**
-   * \brief writes the fase of the event "myEvent".
-   * 
-   * -Computes the time difference, in units of TDC precision (cf 'readResolution()'), between the first hit in the channel 
-   * 
-   * TriggerChannelNumber inside the search window and the preceding clock cycle in the channel ClockChannelNumber.
-   *
-   * -Writes the phase in 'filename'
-   */
   void coutEvent(event myEvent);
   /**
    * \brief desribes explicitely the content of myEvent in the standard output stream
@@ -153,7 +143,22 @@ public:
    * 
    * This information is neglected by 'getEvent()'.
    */
- 
+
+  void writeDeadTime(int deadTime);
+  /**
+   * \brief Sets the dead time in all channels
+   */
+
+  void readDeadTime();
+  /**
+   * \brief Reads the dead time in all channels
+   */
+
+  void setDetectConf(int mode);
+
+  void getDetectConf();
+
+
   void writeOpcode(unsigned int &data);
   /**
    * \brief writes a command line of 16 bit in the Micro Controller register.
@@ -188,6 +193,7 @@ private:
   int waitWrite(void);
   int waitRead(void);
   int waitDataReady(void);
+  bool dataReady(void);
 
 
 };

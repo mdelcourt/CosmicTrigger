@@ -15,6 +15,6 @@ struct event
 {
   unsigned int eventNumber;
   time_t time;
-  vector<hit> measurements;
+  vector<hit> hits;
 };
 

@@ -110,7 +110,7 @@ int main(){
   hv * myHv= new hv(&myCont,0xF0000,2);
   scaler *myScaler = new scaler(&myCont,0xCCCC00);
    
-  float time = 60*5;
+  float time = 20;
   int * hits = getCount(myScaler,&time); 
   for (int i=0; i<nChannel; i++){cout<<"Channel "<<i<<":"<<hits[i]<<endl;}
   
