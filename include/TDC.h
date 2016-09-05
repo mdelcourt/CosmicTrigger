@@ -157,7 +157,11 @@ public:
   void setDetectConf(int mode);
 
   void getDetectConf();
-
+    
+  void SetAlmostFull(int nMax);
+  /**
+   * \brief Set almost full level
+   */
 
   void writeOpcode(unsigned int &data);
   /**
@@ -170,6 +174,51 @@ public:
    * \brief reads a 16 bit word in the Micro Controller register.
    * 
    * This command includes a wait time for micro controllers 'read ready' bit.
+   */
+
+  unsigned int GetStatusWord ();
+  /**
+   * \brief Returns the status word of the TDC card.
+   */
+  bool DataReady(unsigned int status = 4);
+  /**
+   * \brief Returns if data ready in FIFO.
+   * \param status is the status word of the TDC. If none is given, will read from TDC.
+   */
+  bool IsAlmostFull(unsigned int status = 4);
+  /**
+   * \brief Returns if buffer is almost full.
+   * \param status is the status word of the TDC. If none is given, will read from TDC.
+   */
+  bool IsFull(unsigned int status = 4);
+  /**
+   * \brief Returns if buffer is full.
+   * \param status is the status word of the TDC. If none is given, will read from TDC.
+   */
+  bool LostTrig(unsigned int status = 4);
+  /** \brief Returns if a trigger was lost
+   *  \param status is the status word of the TDC. If none is given, will read from TDC.
+   */
+  int  InError(unsigned int status = 4);
+  /**
+   * \brief Returns TDC status. One bit per TDC (4bits in total).
+   * \param status is the status word of the TDC. If none is given, will read from TDC.
+   */
+  int GetNumberOfEvents();
+  /**
+   * \brief Returns number of events currently in FIFO
+   */
+  int GetNumberOfWords();
+  /**
+   * \brief Returns number of words of event in FIFO
+   */
+  vector <event> ReadFIFO();
+  /**
+   * \brief Returns all events in the FIFO
+   */
+  event GetEvent();
+  /**
+   * \brief Reads an event from the FIFO
    */
 
 private:
@@ -192,10 +241,8 @@ private:
   //PRIVATE FUNCTIONS
   int waitWrite(void);
   int waitRead(void);
-  int waitDataReady(void);
-  bool dataReady(void);
-
-
+//  int waitDataReady(void);
+  
 };
 
 

@@ -22,7 +22,7 @@ int tdc::waitRead(void)
 			TestError(readData(this->MicroHandshake,&DATA,A32_U_DATA,D16),"TDC: wait_read");
 			if(DATA%4==3 || DATA%4==2) {success = true; break;}
             else i++;
-            usleep(500);
+            usleep(100); //TODO Optimise sleeping time
 	}
     if (!success && vLevel(ERROR))
         cerr<<"ERROR, device busy after 10000 tries"<<endl;
@@ -38,7 +38,7 @@ int tdc::waitWrite(void)
 			TestError(readData(this->MicroHandshake,&DATA,A32_U_DATA,D16),"TDC: wait_write");
 			if(DATA%2==1){success = true; break;}
             else i++;
-            usleep(500);
+            usleep(100); //TODO Optimise sleeping time
 	}
 	
     if (!success && vLevel(ERROR))
@@ -46,7 +46,7 @@ int tdc::waitWrite(void)
 	return success;
 }
 
-int tdc::waitDataReady(void)
+/*int tdc::waitDataReady(void)
 {
     unsigned int DATA=0;
     int i=0;
@@ -61,28 +61,80 @@ int tdc::waitDataReady(void)
         cerr<<"Error, no events after 100000 tries"<<endl;
 	return success;
 }
+*/
 
-bool tdc::dataReady(void){
-    unsigned  int DATA = 0;
-    TestError(readData(StatusRegister,&DATA),"TDC : check data");
-    return(DATA%2==1);
+
+
+int tdc::GetNumberOfEvents(){
+    unsigned int DATA = 0;
+    TestError(readData(this->add+0x103C,&DATA,A32_U_DATA,D16),"TDC: get N events");
+    return(DATA);
 }
- 
-int tdc::getEvent(event &myEvent)
-{
-    //works only if FIFO enabled !
+
+int tdc::GetNumberOfWords(){
+    unsigned int DATA = 0;
+    TestError(readData(this->add+0x1038,&DATA,A32_U_DATA,D32),"TDC: get N words");
+    return(DATA%65536);
+}
+
+
+event tdc::GetEvent(){
     
-    if ( !dataReady() ){
-        if (vLevel(DEBUG))
-            cout<<"No data in buffer"<<endl;
-        return 0;}
+    event e;
+    int nWords = GetNumberOfWords();
     
+    if (nWords == 0){
+        return (e);
+    }
+    
+
     unsigned int DATA=0;
-    TestError(readData(this->EventFIFO,&DATA,A32_U_DATA,D32),"TDC: read FIFO");
-    unsigned int eventNumberFIFO=digit(DATA,31,16);
-    unsigned int numberOfWords=digit(DATA,15,0);
-    
-    vector<unsigned int> dataOutputBuffer;
+    bool inPayload = false;
+    int lastWord = 0;
+    for (int i=0; i<nWords; i++){
+//        cout<<"Reading word "<<i<<"/"<<nWords<<endl;
+        lastWord = i;
+        TestError(readData(this->add,&DATA,A32_U_DATA,D32),"TDC: read buffer");
+//        cout<<show_hex(DATA,8)<<endl;
+        short int wordType = DATA>>27;
+//        cout<<"Word Type :"<<wordType<<endl;
+        if (!inPayload){ //We are not in the payload yet (expecting header)
+            if (wordType == 8){// Global header
+                inPayload = true;
+                e.eventNumber = (DATA>>5)%4194304;
+            }
+            else{
+                e.errorCode = -2; // Sync loss error
+            }
+        }
+        else{ // We are in the payload
+            if (wordType < 8 ){ // TDC Data
+                if (wordType!=0) {continue;} //Not TDC meas.
+                else{
+                    hit h;
+                    h.channel = (DATA >> 19)%256;
+                    h.time    = (DATA)%524288;
+                    e.hits.push_back(h);
+                }
+            }
+            else if (wordType == 17){continue;} // Ext. time trigger tag
+            else if (wordType == 16){// Trailer
+                inPayload = false;
+                e.errorCode = (DATA>>24)%8;
+                break;
+            }
+        }
+    }
+    if (lastWord!=nWords-1) e.errorCode = -3;
+    if (inPayload)  e.errorCode = -4;
+    time(&e.time);
+    return(e);
+
+
+
+
+/*    vector<unsigned int> dataOutputBuffer;
+
     for(unsigned int i=numberOfWords; i>0 ;i--)
     {
     	TestError(readData(this->add,&DATA,A32_U_DATA,D32),"TDC: read buffer");
@@ -113,8 +165,23 @@ int tdc::getEvent(event &myEvent)
     }
     
     time(&myEvent.time);
-    return 1;
-    
+    return 1;*/
+}
+
+vector <event> tdc::ReadFIFO()
+{   
+    int nEvents = GetNumberOfEvents();
+    vector <event> ev;
+    cout<<"Getting "<<nEvents<<" evts"<<endl;
+    for (int i=0; i<nEvents; i++){
+        ev.push_back(GetEvent());
+    }
+   return(ev); 
+}
+
+void tdc::SetAlmostFull(int nMax){
+    unsigned int DATA = nMax;
+    TestError(writeData(this->add+=0x1022,&DATA,A32_U_DATA,D16),"TDC: write almost full");
 }
 
 void tdc::coutEvent(event myEvent)
@@ -131,7 +198,6 @@ void tdc::coutEvent(event myEvent)
 // Read the status with the
 void tdc::ReadStatus(){
     unsigned int DATA=0;
-    waitRead();
     TestError(readData(StatusRegister,&DATA),"TDC: read Status");
     if (DATA%2 > 0){ if(vLevel(NORMAL))cout << "Event Ready"<<endl;}
     else {if(vLevel(NORMAL))cout<< "No data ready"<<endl;}
@@ -140,6 +206,40 @@ void tdc::ReadStatus(){
     
     if (DATA%16 >7 ){if(vLevel(NORMAL))cout<< " Operating Mode : Trigger "<<endl;}
     else{ if(vLevel(NORMAL))cout<< "Operating Mode : Continuous"<<endl;}
+}
+
+unsigned int tdc::GetStatusWord(){
+    unsigned int DATA;
+    TestError(readData(StatusRegister,&DATA),"TDC: read Status");
+    return(DATA);
+}
+
+// Functions to check specific bits in status word.
+// Status word = 4 -> Full and no data ready -> get new status word
+
+bool tdc::IsFull(unsigned int status){
+    if (status == 4) status = GetStatusWord();
+    return((status>>2)%2);
+}
+
+bool tdc::LostTrig(unsigned int status){
+    if (status==4) status = GetStatusWord();
+    return((status>>15)%2);
+}
+
+bool tdc::IsAlmostFull(unsigned int status){
+    if (status == 4) status = GetStatusWord();
+    return((status>>1)%2);
+}
+
+int tdc::InError(unsigned int status){
+    if (status == 4) status = GetStatusWord();
+    return((status>>6)%16);
+}
+
+bool tdc::DataReady(unsigned int status){
+    if (status == 4) status = GetStatusWord();
+    return(status%2);
 }
 
 void tdc::Reset(){
@@ -161,10 +261,8 @@ void tdc::setMode(bool Trig){
     }
 
 void tdc::setMaxEvPerHit(int Max_ev_per_hit){
-    //FIXME
-    return;
     for(int k=0; k<8;k++)
-    if (Max_ev_per_hit== (2^(k)))
+    if (Max_ev_per_hit== ((int)1)<<k)
     {
         if(vLevel(NORMAL))if (k == 8) cout << "No limit on Maximum number of hits per event";
         unsigned int DATA=0x3300; // MEPH = maximum events per hits

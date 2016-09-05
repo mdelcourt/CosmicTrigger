@@ -19,7 +19,7 @@ bool TestError(int error, std::string where="", bool fatal = false);
  * This function is the same as the vmeBoard member function but doesn't handle verbosity.
  * 
  */
-string show_hex(int number, int size=-1);
+string show_hex(unsigned int number, int size=-1);
 /**<
  * \brief Converts an hexadecimal number to a string.
  * 
@@ -27,6 +27,7 @@ string show_hex(int number, int size=-1);
  * \param size Number of "digits" to show. Autoset if not specified.
  * 
  */
+//string show_hex(int number,int size=-1){ return(show_hex ((unsigned int) number,size));}
 
 unsigned int digit(unsigned int data, int begin, int end);
 

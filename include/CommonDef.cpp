@@ -19,7 +19,7 @@ bool TestError(int error, std::string where, bool fatal) {
   else return 1;
 }
 
-string show_hex(int number, int size){
+string show_hex(unsigned int number, int size){
   ostringstream to_return;
   to_return<<"0x";
   int i=size-1;

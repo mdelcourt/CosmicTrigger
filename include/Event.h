@@ -11,10 +11,13 @@ struct hit
   unsigned int time;
 };
 
-struct event
+class event
 {
-  unsigned int eventNumber;
-  time_t time;
-  vector<hit> hits;
+public:
+    event():time(0), eventNumber(0), errorCode(-1){}
+    unsigned int eventNumber;
+    time_t time;
+    vector<hit> hits;
+    int errorCode;// -1 = not initialised
 };
 

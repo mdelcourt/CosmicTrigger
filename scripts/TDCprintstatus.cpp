@@ -13,6 +13,14 @@
 
 tdc * myTDC;
 
+int get_ms(timeval * t1, timeval * t2){
+    long seconds  = -t1->tv_sec  + t2->tv_sec;
+    long useconds = -t1->tv_usec + t2->tv_usec;
+    return(seconds*1000+useconds/1000+0.5);
+}
+
+
+
 void send(unsigned int DATA){
     myTDC->writeOpcode(DATA);
 }
@@ -70,17 +78,10 @@ int main(){
 //  myCont.reset();
   cout<<"Starting trigger..."<<endl;
   ttcVi * t = new ttcVi(&myCont);
-  t->changeRandomFrequency(0);
-  discri * d = new discri(&myCont);
-  d->setWidth(1);
-  d->setMultiChannel(0xFFFF);
-  d->setMajority(3);
-  d->setTh(100);
-
-
-
   myTDC = new tdc(&myCont,0x00AA0000);
   t->changeChannel(0);
+
+  //myTDC->SetAlmostFull(1000);
   send(0x0500);//Set default
   send(0x0000);//Set trigger matching
   myTDC->setDetectConf(1);
@@ -97,7 +98,8 @@ int main(){
   cout<<"Resolution config"<<read()<<endl;
   
   myTDC->readDeadTime();
-
+//  myTDC->SetAlmostFull(4000);
+//  return(0);
   sleep(2);
 
   t->changeChannel(1);
@@ -111,7 +113,7 @@ int main(){
 //  myTDC->setRejectMargin(1);
 //  myTDC->readWindowConfiguration();
 /*  myTDC->enableFIFO();*/
-//  myTDC->disableTDCHeaderAndTrailer();
+  myTDC->disableTDCHeaderAndTrailer();
 /*  myTDC->readResolution();
   unsigned int DATA=0x2500;
   myTDC->writeOpcode(DATA);
@@ -121,37 +123,45 @@ int main(){
   //Setting channels on :
   string * log = new string;
   cout<<"---------------------------------------------------"<<endl;
-  int Nmax= 2e6;
-  for(int i=0;i<Nmax;i++)
+  int Nmax= 10000;// maximum number of events read
+  int Nevents = 0;
+    
+
+  float readRate = 20.;
+  float dt = 0.2; //time btw two acquisitions
+
+  bool triggerOn = true;
+  bool trigWasLost = false;
+  timeval tStart,tStop;
+  gettimeofday(&tStart,NULL);  
+
+  for(int i=0;i<1000;i+=1)
   {
-    //cout<<"Loooopin' "<<i<<endl;
-    event e;
-    int status = myTDC->getEvent(e);
-    if (status==1){
-        if (i<10 || (i<100 && i%10==0) || (i%100==0)){
-            cout<<"Got evt ("<<i+1<<"/"<<Nmax<<")"<<endl;
-            ifstream killer("kill.txt");
-            if (killer.is_open()){break;}
+    usleep(20000);
+    int nInFIFO = myTDC->GetNumberOfEvents();
+    cout<<nInFIFO<<" events in FIFO"<<endl;
+    // Trigger throttling :
+    unsigned int status = myTDC->GetStatusWord();
+    cout<<status<<endl;
+     cout<<"F = "<<myTDC->IsFull(status)<<"; AF = "<<myTDC->IsAlmostFull(status)<<"; L = "<<myTDC->LostTrig(status)<<" DR = "<<myTDC->DataReady(status)<<endl;
+    for (int j=0; j<5; j++){
+        if (myTDC->DataReady()&&trigWasLost){
+            cout<<"Error code = "<<myTDC->GetEvent().errorCode<<endl;
         }
-//        myTDC->coutEvent(e);
-        dumpEvent(e, log);
+        if (trigWasLost && !myTDC->DataReady())
+            break;
     }
-    else if (status==-1){
-  //      cout<<"Empty evt..."<<endl;
+    if (myTDC->LostTrig(status) && i>100 && triggerOn)
+    {
+        trigWasLost=true;
+        cout<<"Pausing trigger."<<endl;
+        t->changeChannel(0);
+        triggerOn = false;
     }
-    else{
-        i--;
-    //    cout<<"No event present... Sleeping 1s"<<endl;
-        sleep(1); 
-        continue;
-    }
-    //    myTDC->analyseEvent(e,"coucou");
 
   }
-  
-    ofstream out("log.txt",std::ios_base::app);
-    out<<*log;
-    out.close();
+
+ cout<<"done"<<endl;  
 
   
   return(0);
