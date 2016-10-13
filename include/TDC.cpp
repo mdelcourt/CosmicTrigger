@@ -152,6 +152,13 @@ void tdc::SetAcqMode(bool Trig){
     if(vLevel(DEBUG))cout << "Trigger Mode : " << Trig<< endl;
 }
 
+bool tdc::GetAcqMode(){
+    unsigned int DATA=0x0200;
+    WriteOpcode(DATA);
+    ReadOpcode(DATA);
+    if(vLevel(DEBUG))cout << "Trigger Mode : " << DATA%2<< endl;
+    return(DATA%2);
+}
 
 void tdc::SetAlmostFull(int nMax){
     unsigned int DATA = nMax;

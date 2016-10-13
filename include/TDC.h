@@ -121,7 +121,7 @@ public:
    */
 
   void SetAutoLoadUserConfig();
-  /*
+  /**
    * \brief Automatically load saved config from board
    */
   

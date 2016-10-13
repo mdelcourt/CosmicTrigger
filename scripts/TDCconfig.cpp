@@ -23,14 +23,18 @@ unsigned int read(){
 }
 
 int main(){
-  UsbController myCont(NORMAL);
+  UsbController myCont(DEBUG);
   unsigned int DATA;   
   myTDC = new tdc(&myCont,0x00AA0000);
 
   myTDC->LoadDefaultConfig(); 
  
+  myTDC->SetAcqMode(1);  // Set trigger matching mode
+  myTDC->SetWindowWidth(100);
 
 
 
+  myTDC->SetAutoLoadUserConfig();
+  myTDC->SaveUserConfig();
 }
 
