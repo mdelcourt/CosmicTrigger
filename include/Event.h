@@ -15,8 +15,8 @@ class event
 {
 public:
     event():time(0), eventNumber(0), errorCode(-1){}
-    unsigned int eventNumber;
     time_t time;
+    unsigned int eventNumber;
     vector<hit> hits;
     int errorCode;// -1 = not initialised
 };

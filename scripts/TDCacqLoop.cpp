@@ -24,12 +24,12 @@ int get_ms(timeval * t1, timeval * t2){
 
 
 void send(unsigned int DATA){
-    myTDC->writeOpcode(DATA);
+    myTDC->WriteOpcode(DATA);
 }
 
 unsigned int read(){
     unsigned int DATA;
-    myTDC->readOpcode(DATA);
+    myTDC->ReadOpcode(DATA);
     return(DATA);
 }
 
@@ -93,8 +93,10 @@ vector <event> acqLoop(){
         }
     }
     if (DR){
+        int TTCevtNumber = t->getEventNumber();
         //Read data from FIFO
-        int nToRead = myTDC->GetNumberOfEvents();
+        int nEventsInTDC = myTDC->GetNumberOfEvents();
+        int nToRead=nEventsInTDC;
         if (nToRead >50 || nToRead == 0)
             nToRead = 50;
         for (int i=0; i<nToRead; i++){
@@ -102,6 +104,16 @@ vector <event> acqLoop(){
             evtVec.push_back(e);
             if (! e.errorCode==0){
                 cout<<e.eventNumber<<" : error num "<<e.errorCode<<endl;
+            }
+            if (i==0 || true){
+                int nEventsInTDC_2 = myTDC->GetNumberOfEvents();
+                int TTCevtNumber_2 = t->getEventNumber();
+                cout<<"TTC - TDC = "<<TTCevtNumber_2-e.eventNumber-nEventsInTDC_2<<"-"<<trig_enabled<<endl;
+                cout<<TTCevtNumber_2<<"-"<<e.eventNumber+nEventsInTDC_2<<endl;
+                if (abs(TTCevtNumber_2-e.eventNumber-nEventsInTDC_2) > 3) { 
+                    cerr<<"ERROR..."<<endl; 
+                    exit(0);
+                }
             }
         }
     }
@@ -117,7 +129,7 @@ int main(){
   cout<<"Starting trigger..."<<endl;
   myTDC = new tdc(&myCont,0x00AA0000);
   t->changeChannel(0);
-
+  myTDC->IsAlmostFull();
   //myTDC->SetAlmostFull(1000);
   send(0x0500);//Set default
   send(0x0000);//Set trigger matching
@@ -134,11 +146,12 @@ int main(){
   send(0x2600);
   cout<<"Resolution config"<<read()<<endl;
   
-  myTDC->readDeadTime();
-//  myTDC->SetAlmostFull(4000);
-  sleep(2);
-
-  t->changeChannel(1);
+ // myTDC->readDeadTime();
+ // myTDC->SetAlmostFull(4000);
+  //return(0);
+//  sleep(10);
+  t->resetCounter();
+  t->changeChannel(7);
 
 //  send(0x0100);
   
@@ -165,14 +178,19 @@ int main(){
 
   float readRate = 20.;
   float dt = 0.2; //time btw two acquisitions
-
+  t->resetCounter();
+  t->changeChannel(1);
   timeval tStart,tStop;
   gettimeofday(&tStart,NULL);  
-
-  for(int i=0;i<1000;i+=1)
+    
+  for(int i=0;i<10000;i+=1)
   {
     vector <event> eVec = acqLoop();
     cout<<"Got "<<eVec.size()<<" events."<<endl;
+    gettimeofday(&tStop,NULL);
+    if (eVec.size()>0){
+        cout<<"Rate from start = "<<eVec.at(eVec.size()-1).eventNumber*1000./get_ms(&tStart,&tStop)<<endl;
+    }
     if (eVec.size()<5) sleep(1);
   }
 
