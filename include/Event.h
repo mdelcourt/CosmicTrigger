@@ -9,6 +9,7 @@ struct hit
 {
   unsigned int channel;
   unsigned int time;
+  bool leading; //0 = trailing, 1 = leading
 };
 
 class event
@@ -18,6 +19,7 @@ public:
     time_t time;
     unsigned int eventNumber;
     vector<hit> hits;
+    vector<int> tdcErrors;
     int errorCode;// -1 = not initialised
 };
 

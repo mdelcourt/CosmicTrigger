@@ -29,11 +29,12 @@ void testAcq(UsbController * cont){
     ttcVi * myTTC = new ttcVi(cont);
     myTTC->changeChannel(1);
     for (int i=0; i<3; i++){
-        if (myTDC->dataReady()){
+        if (tdc::dataReady(myTDC->getStatusWord())){
             vector<event> ev = myTDC->readFIFO();
             for (vector<event>::iterator e =  ev.begin(); e!=ev.end(); e++){
                 cout<<"Event read :"<<endl;
                 cout<<e->hits.size()<<" hits."<<endl;
+                cout<<"Number of TDC errors : "<<e->tdcErrors.size()<<endl;
                 int nClk = 0;
                 int firstClk = -1;
                 for (vector <hit>::iterator h = e->hits.begin(); h!=e->hits.end(); h++){
@@ -60,13 +61,11 @@ void testAcq(UsbController * cont){
 
 
 int main(){
-  UsbController myCont(DEBUG);
+  UsbController myCont(NORMAL);
   unsigned int DATA;   
   myTDC = new tdc(&myCont,0x00AA0000);
   myTDC->reset();
   myTDC->loadUserConfig();
- // myTDC->LoadDefaultConfig(); 
-/* 
   myTDC->setAcqMode(1);         // Set trigger matching mode
   myTDC->setWindowWidth(13);    // Set Window width to XX clock cycles. TODO
   myTDC->enableFIFO();          // Enables FIFO
@@ -74,7 +73,7 @@ int main(){
   myTDC->setExSearchMargin(3);  // ??? TODO
   myTDC->setRejectMargin(0);    // ??? TODO
   myTDC->setEdgeDetection(2);   // Set to leading
-  myTDC->setDeadTime(0);        // Set Dead time btw hits to 5ns
+  myTDC->setDeadTime(3);        // Set Dead time btw hits to 5ns
   myTDC->setEdgeResolution(2);  // Edge resolution set to 100ps
   myTDC->setMaxEventsPerHit(9); // No maximum events
 
@@ -84,13 +83,13 @@ int main(){
   send(0x00FF);                 //                  (2/2)
   send(0x3B00);                 //Set FIFO size to 256 (1/2)
   send(0x0003);                 //                     (2/2)
-
-
+//  send(0x3000);                 //Enable TDC header/trailer
+  
   myTDC->setStatusAllChannels(0);
   for (int i=0; i<20; i++) myTDC->setStatusChannel(i,1);
   myTDC->setAutoLoadUserConfig();
   myTDC->saveUserConfig();
-*/
- testAcq(&myCont); 
+ 
+  testAcq(&myCont); 
 }
 

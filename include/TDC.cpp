@@ -21,7 +21,8 @@ void tdc::reset(){
         ADD+=2;
         TestError(writeData(ADD, &DATA),"Reset...");
     }
-    if(vLevel(NORMAL))cout<< " Module Reset... " << endl << " Software Clear... " << endl <<  " Software Event Reset... " <<endl;
+    if(vLevel(NORMAL))
+        cout<< " Module Reset... " << endl << " Software Clear... " << endl <<  " Software Event Reset... " <<endl;
 }
 
 void tdc::writeOpcode(unsigned int &DATA)
@@ -46,28 +47,23 @@ unsigned int tdc::getStatusWord(){
 // Status word = 4 -> Full and no data ready -> get new status word
 
 bool tdc::dataReady(unsigned int status){
-    if (status == 4) status = getStatusWord();
     return(status%2);
 }
 
 bool tdc::isAlmostFull(unsigned int status){
-    if (status == 4) status = getStatusWord();
     return((status>>1)%2);
 }
 
 bool tdc::isFull(unsigned int status){
-    if (status == 4) status = getStatusWord();
     return((status>>2)%2);
 }
 
 bool tdc::lostTrig(unsigned int status){
-    if (status==4) status = getStatusWord();
     return((status>>15)%2);
 }
 
 
 int tdc::inError(unsigned int status){
-    if (status == 4) status = getStatusWord();
     return((status>>6)%16);
 }
 
@@ -96,6 +92,8 @@ event tdc::getEvent(){
     for (int i=0; i<nWords; i++){
         lastWord = i;
         TestError(readData(this->add,&DATA,A32_U_DATA,D32),"TDC: read buffer");
+        if (vLevel(DEBUG))
+            cout<<"WORD "<<i<<(i<10?"  ":" ")<<": "<<show_hex(DATA,8)<<endl;
         short int wordType = DATA>>27;
         if (!inPayload){ //We are not in the payload yet (expecting header)
             if (wordType == 8){// Global header
@@ -108,10 +106,13 @@ event tdc::getEvent(){
         }
         else{ // We are in the payload
             if (wordType < 8 ){ // TDC Data
-                if (wordType!=0) {continue;} //Not TDC meas.
-                else{
+                if (wordType==4) { //TDC error
+                    e.tdcErrors.push_back(DATA%65536);
+                } 
+                else if (wordType==0){ //TDC meas
                     hit h;
-                    h.channel = (DATA >> 19)%256;
+                    h.channel = (DATA >> 19)%128;
+                    h.leading = !((DATA >> 26)%2);
                     h.time    = (DATA)%524288;
                     e.hits.push_back(h);
                 }

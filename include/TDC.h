@@ -55,26 +55,26 @@ public:
   /**<
    * \brief Returns the status word of the TDC card.
    */
-  bool dataReady(unsigned int status = 4);
+  static bool dataReady(unsigned int status);
   /**<
    * \brief Returns if data ready in FIFO.
    * \param status is the status word of the TDC. If none is given, will read from TDC.
    */
-  bool isAlmostFull(unsigned int status = 4);
+  static bool isAlmostFull(unsigned int status);
   /**<
    * \brief Returns if buffer is almost full.
    * \param status is the status word of the TDC. If none is given, will read from TDC.
    */
-  bool isFull(unsigned int status = 4);
+  static bool isFull(unsigned int status);
   /**<
    * \brief Returns if buffer is full.
    * \param status is the status word of the TDC. If none is given, will read from TDC.
    */
-  bool lostTrig(unsigned int status = 4);
+  static bool lostTrig(unsigned int status);
   /**< \brief Returns if a trigger was lost
    *  \param status is the status word of the TDC. If none is given, will read from TDC.
    */
-  int  inError(unsigned int status = 4);
+  static int  inError(unsigned int status);
   /**<
    * \brief Returns TDC status. One bit per TDC (4bits in total).
    * \param status is the status word of the TDC. If none is given, will read from TDC.
