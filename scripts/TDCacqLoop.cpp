@@ -24,12 +24,12 @@ int get_ms(timeval * t1, timeval * t2){
 
 
 void send(unsigned int DATA){
-    myTDC->WriteOpcode(DATA);
+    myTDC->writeOpcode(DATA);
 }
 
 unsigned int read(){
     unsigned int DATA;
-    myTDC->ReadOpcode(DATA);
+    myTDC->readOpcode(DATA);
     return(DATA);
 }
 
