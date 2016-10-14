@@ -3,7 +3,6 @@
 
 #include "VmeBoard.h"
 
-using namespace std;
 
 /**<
  * 

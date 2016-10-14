@@ -6,7 +6,6 @@
 #include <sstream>
 #include <stdlib.h>
 
-using namespace std;
 
 bool TestError(int error, std::string where="", bool fatal = false);
 /**<
@@ -19,7 +18,7 @@ bool TestError(int error, std::string where="", bool fatal = false);
  * This function is the same as the vmeBoard member function but doesn't handle verbosity.
  * 
  */
-string show_hex(unsigned int number, int size=-1);
+std::string show_hex(unsigned int number, int size=-1);
 /**<
  * \brief Converts an hexadecimal number to a string.
  * 

@@ -1,7 +1,6 @@
 #ifndef __SCALER
 #define __SCALER
 
-using namespace std;
 
 #include "VmeBoard.h"
 

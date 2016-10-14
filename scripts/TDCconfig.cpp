@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include<ctime>
 
+using namespace std;
 tdc * myTDC;
 void send(unsigned int DATA){
     myTDC->writeOpcode(DATA);

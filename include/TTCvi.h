@@ -1,7 +1,6 @@
 #ifndef __TTCVI
 #define __TTCVI
 
-using namespace std;
 
 #include "VmeBoard.h"
 

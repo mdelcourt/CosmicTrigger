@@ -7,7 +7,6 @@
 #include <sstream>
 #include <stdint.h>
 
-using namespace std;
 /**
  * \brief
  *  This class has a few functions encoding the basic functionalities of the TDC.
@@ -94,7 +93,7 @@ public:
   /**<
    * \brief Reads an event from the FIFO
    */
-  vector <event> readFIFO();
+  std::vector <event> readFIFO();
   /**<
    * \brief Returns all events in the FIFO
    */
@@ -166,7 +165,7 @@ public:
    * 
    * -Trigger time substraction
    */
-  vector <unsigned int > getTriggerConfiguration();
+  std::vector <unsigned int > getTriggerConfiguration();
   /**<
    * \brief Returns a vector containing the current trigger configuration.
    * Values are :

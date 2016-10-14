@@ -8,11 +8,11 @@ hv::hv(vmeController *controller, int bridgeAdd, int hvAdd):vmeBoard(controller,
 }
 
 int hv::reset(void){
-  //cout<<show_hex(bridgeAdd)<<endl;
+  //std::cout<<show_hex(bridgeAdd)<<std::endl;
   int DATA=0x0000;
-  if(vLevel(NORMAL))cout<<"Reseting HV...";
+  if(vLevel(NORMAL))std::cout<<"Reseting HV...";
   if(TestError(writeData(add+0x06,&DATA),"HV: reset")){
-    if (vLevel(NORMAL))cout<<" ok!"<<endl;
+    if (vLevel(NORMAL))std::cout<<" ok!"<<std::endl;
     return(1);
   }
   return(-1);
@@ -20,9 +20,9 @@ int hv::reset(void){
 
 int hv::getStatus(){
     int DATA=0;
-    if(vLevel(DEBUG))cout<<"Getting HV status...";
+    if(vLevel(DEBUG))std::cout<<"Getting HV status...";
     if(TestError(readData(add+0x02,&DATA),"HV: getStatus")){
-      if (vLevel(DEBUG))cout<<" ok!"<<endl;
+      if (vLevel(DEBUG))std::cout<<" ok!"<<std::endl;
       return(DATA);
     }
     else return(-1);
@@ -71,11 +71,11 @@ int hv::comLoop(int data1, int data2) {
 //     while(getStatus()!=0xFFFF && lbreak<100){
 //       lbreak++;
 //       DATA=0;
-//       if(TestError(readData(this->add+0x00,&DATA),"HV: comLoop, reading")){cout<<"Word "<<lbreak<<" "<<show_hex(DATA)<<endl;}    
+//       if(TestError(readData(this->add+0x00,&DATA),"HV: comLoop, reading")){std::cout<<"Word "<<lbreak<<" "<<show_hex(DATA)<<std::endl;}    
 //     }
     return 1;
     //DATA=getStatus();
-    //if(DATA==0xFFFF){cerr<<"ERROR!!!"<<endl;}
+    //if(DATA==0xFFFF){std::cerr<<"ERROR!!!"<<std::endl;}
   
 }
 
@@ -111,7 +111,7 @@ int hv::setChV(int volt, int channel){
     return(status);
   }
   else if(channel>3){
-    if(vLevel(WARNING)) cerr<<"*   WARNING: invalid parameter: "<<channel<<". Statement ignored"<<endl;
+    if(vLevel(WARNING)) std::cerr<<"*   WARNING: invalid parameter: "<<channel<<". Statement ignored"<<std::endl;
     return(-1);
   }
   else{
@@ -122,7 +122,7 @@ int hv::setChV(int volt, int channel){
 
 double ** hv::readValues(double ** val){
   if(val==0){
-    //cout<<"New value vector"<<endl;
+    //std::cout<<"New value vector"<<std::endl;
     val=new double * [4]; 
     for(int i=0; i<4; i++) val[i]=new double[4];
   }
@@ -134,12 +134,12 @@ double ** hv::readValues(double ** val){
   usleep(100000);
   getStatus();
   readData(add,&DATA);
-  if(DATA){cout<<"No data..."<<endl; return(0);}
+  if(DATA){std::cout<<"No data..."<<std::endl; return(0);}
   
   for(int i=0; i<4; i++){
     for(int j=0; j<4; j++){
       readData(add,&DATA);
-      //cout<<DATA<<endl;
+      //std::cout<<DATA<<std::endl;
       val[i][j]=DATA;
       }
   }
@@ -147,8 +147,8 @@ double ** hv::readValues(double ** val){
 
 //   if(TestError(readData(add,&DATA),"HV: reading values")==-1){return(-1);}
   
-//   if(vLevel(NORMAL)){cout<<show_hex(DATA)<<endl;}
-//   if(vLevel(DEBUG)){cout<<"Data useful:"<<show_hex(getStatus())<<endl;}
+//   if(vLevel(NORMAL)){std::cout<<show_hex(DATA)<<std::endl;}
+//   if(vLevel(DEBUG)){std::cout<<"Data useful:"<<show_hex(getStatus())<<std::endl;}
 //   if(!(getStatus()==0xFFFF)){return(DATA);}
 //   else return(-1);
 return(val);
