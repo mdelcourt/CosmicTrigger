@@ -13,12 +13,12 @@
 
 tdc * myTDC;
 void send(unsigned int DATA){
-    myTDC->WriteOpcode(DATA);
+    myTDC->writeOpcode(DATA);
 }
 
 unsigned int read(){
     unsigned int DATA;
-    myTDC->ReadOpcode(DATA);
+    myTDC->readOpcode(DATA);
     return(DATA);
 }
 
@@ -29,8 +29,8 @@ void testAcq(UsbController * cont){
     ttcVi * myTTC = new ttcVi(cont);
     myTTC->changeChannel(1);
     for (int i=0; i<3; i++){
-        if (myTDC->DataReady()){
-            vector<event> ev = myTDC->ReadFIFO();
+        if (myTDC->dataReady()){
+            vector<event> ev = myTDC->readFIFO();
             for (vector<event>::iterator e =  ev.begin(); e!=ev.end(); e++){
                 cout<<"Event read :"<<endl;
                 cout<<e->hits.size()<<" hits."<<endl;
@@ -63,20 +63,20 @@ int main(){
   UsbController myCont(DEBUG);
   unsigned int DATA;   
   myTDC = new tdc(&myCont,0x00AA0000);
-  myTDC->Reset();
-  myTDC->LoadUserConfig();
+  myTDC->reset();
+  myTDC->loadUserConfig();
  // myTDC->LoadDefaultConfig(); 
 /* 
-  myTDC->SetAcqMode(1);         // Set trigger matching mode
-  myTDC->SetWindowWidth(13);    // Set Window width to XX clock cycles. TODO
-  myTDC->EnableFIFO();          // Enables FIFO
-  myTDC->SetWindowOffset(0);    // Set offset to 0 clk cycles. TODO
-  myTDC->SetExSearchMargin(3);  // ??? TODO
-  myTDC->SetRejectMargin(0);    // ??? TODO
-  myTDC->SetEdgeDetection(2);   // Set to leading
-  myTDC->SetDeadTime(0);        // Set Dead time btw hits to 5ns
-  myTDC->SetEdgeResolution(2);  // Edge resolution set to 100ps
-  myTDC->SetMaxEventsPerHit(9); // No maximum events
+  myTDC->setAcqMode(1);         // Set trigger matching mode
+  myTDC->setWindowWidth(13);    // Set Window width to XX clock cycles. TODO
+  myTDC->enableFIFO();          // Enables FIFO
+  myTDC->setWindowOffset(0);    // Set offset to 0 clk cycles. TODO
+  myTDC->setExSearchMargin(3);  // ??? TODO
+  myTDC->setRejectMargin(0);    // ??? TODO
+  myTDC->setEdgeDetection(2);   // Set to leading
+  myTDC->setDeadTime(0);        // Set Dead time btw hits to 5ns
+  myTDC->setEdgeResolution(2);  // Edge resolution set to 100ps
+  myTDC->setMaxEventsPerHit(9); // No maximum events
 
   send(0x3100);                 //Disable TDC header/trailer
   send(0x3500);                 //Enable TDC error mark
@@ -86,10 +86,10 @@ int main(){
   send(0x0003);                 //                     (2/2)
 
 
-  myTDC->SetStatusAllChannels(0);
-  for (int i=0; i<20; i++) myTDC->SetStatusChannel(i,1);
-  myTDC->SetAutoLoadUserConfig();
-  myTDC->SaveUserConfig();
+  myTDC->setStatusAllChannels(0);
+  for (int i=0; i<20; i++) myTDC->setStatusChannel(i,1);
+  myTDC->setAutoLoadUserConfig();
+  myTDC->saveUserConfig();
 */
  testAcq(&myCont); 
 }
