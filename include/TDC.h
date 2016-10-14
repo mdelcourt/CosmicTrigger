@@ -5,6 +5,8 @@
 #include "Event.h"
 #include <vector>
 #include <sstream>
+#include <stdint.h>
+
 using namespace std;
 /**
  * \brief
@@ -244,10 +246,16 @@ public:
    * 
    * This information is neglected by 'getEvent()'.
    */
+  
+  void SetStatusAllChannels(bool status);
+  /**<
+   * \brief Enables/Disables all channels
+   */
 
-
-
-
+  void SetStatusChannel(int channel, bool status);
+  /**<
+   * \brief Set status for individual channel
+   */
     
   void SetAlmostFull(int nMax);
   /**<

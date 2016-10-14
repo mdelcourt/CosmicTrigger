@@ -367,7 +367,22 @@ void tdc::DisableTDCHeaderAndTrailer()
       if(vLevel(NORMAL))cout << "TDC Header and Trailer disabled"<< endl;
   }
   
+void tdc::SetStatusAllChannels(bool status){
+    unsigned int DATA=0x4200;
+    if (status==0) DATA+=0x0100;
+    cout<<DATA<<endl;
+    WriteOpcode(DATA);
+}
 
+void tdc::SetStatusChannel(int channel, bool status){
+    unsigned int DATA=0x4000;
+    if (status==0)DATA+=0x0100;
+    DATA+=channel;
+    cout<<show_hex(DATA)<<endl;
+    WriteOpcode(DATA);
+    if(vLevel(DEBUG))
+        cout<<"Set channel "<<channel<<" to "<<(status?"ON":"OFF")<<endl;
+}
 
 int tdc::waitRead(void)
 {
